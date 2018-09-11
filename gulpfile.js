@@ -85,4 +85,32 @@
       .pipe(gulp.dest(cssConfig.build))
       .pipe(browsersync ? browsersync.reload({ stream: true }) : noop())
   );
+
+  /**************** browser-sync task ****************/
+
+  const syncConfig = {
+    server: {
+      baseDir: "./",
+      index: "index.html"
+    },
+    port: 8000,
+    files: dir.build + "**/*",
+    open: false
+  };
+
+  // browser-sync
+  gulp.task(
+    "browsersync",
+    () => (browsersync ? browsersync.init(syncConfig) : null)
+  );
+
+  /**************** watch task ****************/
+
+  gulp.task("default", ["css", "browsersync"], () => {
+    // image changes
+    gulp.watch(imgConfig.src, ["images"]);
+
+    // CSS changes
+    gulp.watch(cssConfig.watch, ["css"]);
+  });
 })();

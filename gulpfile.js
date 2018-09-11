@@ -42,4 +42,47 @@
       .pipe(size({ showFiles: true }))
       .pipe(gulp.dest(imgConfig.build))
   );
+
+  const cssConfig = {
+    src: dir.src + "scss/main.scss",
+    watch: dir.src + "scss/**/*",
+    build: dir.build + "css/",
+    sassOpts: {
+      sourceMap: devBuild,
+      outputStyle: "nested",
+      imagePath: "/images/",
+      precision: 3,
+      errLogToConsole: true
+    },
+
+    postCSS: [
+      require("postcss-assets")({
+        loadPaths: ["images/"],
+        basePath: dir.build
+      }),
+      require("autoprefixer")({
+        browsers: ["> 1%"]
+      })
+    ]
+  };
+
+  // remove unused selectors and minify production CSS
+  if (!devBuild) {
+    cssConfig.postCSS.push(
+      require("usedcss")({ html: ["index.html"] }),
+      require("cssnano")
+    );
+  }
+
+  gulp.task("css", ["images"], () =>
+    gulp
+      .src(cssConfig.src)
+      .pipe(sourcemaps ? sourcemaps.init() : noop())
+      .pipe(sass(cssConfig.sassOpts).on("error", sass.logError))
+      .pipe(postcss(cssConfig.postCSS))
+      .pipe(sourcemaps ? sourcemaps.write() : noop())
+      .pipe(size({ showFiles: true }))
+      .pipe(gulp.dest(cssConfig.build))
+      .pipe(browsersync ? browsersync.reload({ stream: true }) : noop())
+  );
 })();
